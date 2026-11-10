@@ -93,15 +93,32 @@ class TestBurger:
         "Price: 100"
         )
 
-    @pytest.mark.parametrize(                                              # получаем чек на бургер c ингр-тами
-        "ingr_spec, final_lines, final_price",
+    @pytest.mark.parametrize(                              # получаем чек на бургер c ингр-тами
+        "ingr_spec, final_lines",
         [
-        ([("space", "sauce", 30)], ["= sauce space ="], 130),
-        ([("meat", "filling", 30), ("space", "sauce", 20)], ["= filling meat =", "= sauce space ="], 150),
+            ([("space", "sauce", 30)], 
+                [
+                    "(==== krator bun ====)",
+                    "= sauce space =",
+                    "(==== krator bun ====)",
+                    "",
+                    "Price: 130"
+                ]
+            ),
+            ([("meat", "filling", 30), ("space", "sauce", 20)], 
+                [
+                    "(==== krator bun ====)",
+                    "= filling meat =",
+                    "= sauce space =",
+                    "(==== krator bun ====)",
+                    "",
+                    "Price: 150"
+                ]
+            ),
         ],
-        ids=["one_ingr", "two_ingr"],
-        )
-    def test_get_receipt_burger_with_ingredients(self, burger, bun, ingr_spec, final_lines, final_price):           
+        ids=["one_ingr", "two_ingr"]
+    )
+    def test_get_receipt_burger_with_ingredients(self, burger, bun, ingr_spec, final_lines):           
         burger.set_buns(bun)
         for ingr_name, ingr_type, price in ingr_spec:
             mock_ingr = Mock()
@@ -110,7 +127,5 @@ class TestBurger:
             mock_ingr.get_price.return_value = price
             burger.add_ingredient(mock_ingr)
         receipt = burger.get_receipt()
-        assert "(==== krator bun ====)" in receipt
-        for line in final_lines:
-            assert line in receipt
-        assert f"Price: {final_price}" in receipt
+        receipt_lines = receipt.split('\n')
+        assert receipt_lines == final_lines
